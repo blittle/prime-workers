@@ -21,6 +21,10 @@ function getPosition(val, a, b) {
 	}
 }
 
+function changeDir(dir) {
+    return dir === 3 ? 0 : dir++;
+}
+
 (function(global) {
 
 	"use strict";
@@ -32,12 +36,61 @@ function getPosition(val, a, b) {
 
 	var layout = Raphael(0, 0, width, height);
 
-	var val;
+	var val, key, x = 0, y = 0, dir = 0;
+    var map = {};
 
 	for(var i=1; i < 5000; i++) {
-		val = totalDivisors(i);
-		position = getPosition( (Math.PI * val *20) / 180, a, b);
-		drawArc(layout, position.x + 300, position.y + 300, val);
+        val = totalDivisors(i);
+        key = x + 'x' + y;
+       
+        switch(dir) {
+            case 0: // right
+                key = (x) + 'x' + (y+1);
+                if(!map[key]) {
+                    y++;
+                    map[key] = val;
+                    dir = 1;
+                } else {
+                    key = (x++) + 'x' + y;
+                    map[key] = val;
+                }
+                break;
+            case 1: // up
+                key = (x - 1) + 'x' + y;
+                if(!map[key]) {
+                    x--;
+                    map[key] = val;
+                    dir = 2;
+                } else {
+                    key = x + 'x' + (y++);
+                    map[key] = val;
+                }
+                break;
+            case 2: // left
+                key = x + 'x' + (y - 1); 
+                if(!map[key]) {
+                    y--;
+                    map[key] = val;
+                    dir = 3;
+                } else {
+                    key = (x--) + 'x' + y;
+                    map[key] = val;
+                }
+                break;
+            case 3: // down
+                key = (x+1) + 'x' + y;
+                if(!map[key]) {
+                    x++;
+                    map[key] = val;
+                    dir = 0;
+                } else {
+                    key = (x++) + 'x' + y;
+                    map[key] = val;
+                }
+                break;
+        }
+
+		drawArc(layout, 5*x + 200, 5*y + 100, 1);
 	}	
 
 })(this);
