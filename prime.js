@@ -4,16 +4,37 @@
 	"use strict";
 
     function drawArc(context, x, y, val) {
-        var r = val.val;
+        var c = val.val, color,
+            r = size < startSize ? startSize : size;
         context.beginPath();
-        context.arc(x, y, size < startSize ? startSize : size, 0, 2 * Math.PI, false);
-        var color = r === 2 ? "red" : "#"+(16777215 - Math.ceil(10000 * Math.log(r)) ).toString(16);
-        
+        context.arc(x, y, r, 0, 2 * Math.PI, false);
+
+        if( c < 3) {
+            color = "#08306b";
+        //} else if( c < 4) {
+        //    color = "#08519C";
+        } else if( c < 8) {
+            color = "#2171B5"; 
+        //} else if( c < 16) {
+        //    color = "#4292C6";
+        } else if( c < 32) {
+            color = "#6BAED6";
+        //} else if( c < 64) {
+        //    color = "#9ECAE1";
+        //} else if( c < 128) {
+        //    color = "#C6DBEF";
+        } else {
+            color ="#DEEBF7";
+        }
+
         context.fillStyle = color;
         context.fill();
-        //context.fillStyle = 'black';
-        //context.fillText(val.val, x, y);
-    }	
+
+        if(label) {
+            context.fillStyle = 'white';
+            context.fillText(val.i, x - (r/2), y );
+        }
+    }
 
     function totalDivisors(val) {
         var count = 1;
@@ -129,9 +150,10 @@
     }
 
     var position = {},
-        n = 5000, startSize = 5, size = startSize, 
+        n = 7000, startSize = 4, size = startSize, 
         p = 4 * Math.sqrt(n),
-        scale = 1, iterations = 0;
+        scale = 3, iterations = 0,
+        label = false;
 
 	var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');
