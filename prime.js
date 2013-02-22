@@ -1,11 +1,11 @@
 
 (function(global) {
 
-	"use strict";
+    "use strict";
 
     function drawArc(context, x, y, val) {
         var c = val.val, color,
-            r = size < startSize ? startSize : size;
+            r = size; //< startSize ? startSize : size;
         context.beginPath();
         context.arc(x, y, r, 0, 2 * Math.PI, false);
 
@@ -47,10 +47,14 @@
     }
 
     function genValues() {
+        
+        n = Math.ceil(Math.pow(width / (size * 2), 2));
+
+        console.log(n);
 
         iterations++;
 
-        for(var i=(((iterations-1)*n) - 1) + 1; i < (iterations * n); i++) {
+        for(var i=m; i < n; i++) {
             val = totalDivisors(i);
             key = x + 'x' + y;
            
@@ -132,35 +136,43 @@
                     }
                     break;
             }
+
+            m = n;
         }	
+
     }
 
     function drawValues() {
         var x, y;
 
-        context.clearRect(0, 0, document.width - 50, document.height -50);
+        context.clearRect(0, 0, width - 20, height - 20);
 
         for(var val in map) {
             x = val.substring(0, val.indexOf('x'));
             y = val.substring(val.indexOf('x')+1);
 
-            drawArc(context, (size*2)*x + p, (size*2)*y + p, map[val]);
+            drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), map[val]);
         }
 
     }
 
     var position = {},
-        n = 7000, startSize = 4, size = startSize, 
-        p = 4 * Math.sqrt(n),
-        scale = 3, iterations = 0,
-        label = false;
+        n = 7000, 
+        m = 1, 
+        startSize = 10, 
+        size = startSize, 
+        scale = 1, 
+        iterations = 0,
+        label = false,
+        width = document.width,
+        height = document.height;
 
 	var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');
 
-    context.font = 'italic 12px Calibri';
-    canvas.width = document.width - 50;
-    canvas.height = document.height - 50;
+    context.font = 'italic 10px Calibri';
+    canvas.width = width - 20;
+    canvas.height = height - 20;
 
 	var val, key, x = 0, y = 0, dir = 0;
     var map = {};
@@ -169,13 +181,14 @@
     drawValues(); 
 
     window.onclick = function(e) {
-        genValues();
-        drawValues();    
+        //genValues();
+        //drawValues();    
     }
 
     window.onmousewheel = function(e) {
-    //    size = (e.wheelDelta / 1000) + scale;
-    //    drawValues();
+        size = size + (e.wheelDelta / 500);
+        genValues();
+        drawValues();
     };
 
 })(this);
