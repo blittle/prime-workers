@@ -4,7 +4,7 @@
     "use strict";
 
     function drawArc(context, x, y, val) {
-        var c = val.val, color,
+        var c = val.factors, color,
             r = size; //< startSize ? startSize : size;
         context.beginPath();
         context.arc(x, y, r, 0, 2 * Math.PI, false);
@@ -36,26 +36,29 @@
         }
     }
 
-    function totalDivisors(val) {
-        var count = 1;
+    function totalDivisors(val, callback) {
+        setTimeout(function() {
+            var factors = 1;
 
-        for(var i = Math.ceil(val/2); i > 0; i--) {
-            if (!(val % i)) count++;
-        }
+            for(var i = Math.ceil(val/2); i > 0; i--) {
+                if (!(val % i)) factors++;
+            }
 
-        return count;
+            callback(factors);
+        }, 0);        
     }
 
     function genValues() {
         
+        generatingValues = true;
+
         n = Math.ceil(Math.pow(width / (size * 2), 2));
 
         console.log(n);
 
         iterations++;
 
-        for(var i=m; i < n; i++) {
-            val = totalDivisors(i);
+        for(var i=m; i < n; i++) {            
             key = x + 'x' + y;
            
             switch(dir) {
@@ -63,18 +66,12 @@
                     key = (x) + 'x' + (y-1);
                     if(!map[key]) {
                         y--;
-                        map[key] = {
-                            val: val,
-                            i: i
-                        };
+                        map[key] = { i: i };
                         dir = 1; //Switch to up
                     } else {
                         key = (++x) + 'x' + y;
                         if(!map[key]) {
-                            map[key] = {
-                                val: val,
-                                i: i
-                            };
+                            map[key] = { i: i };
                         }
                     }
                     break;
@@ -82,18 +79,12 @@
                     key = (x - 1) + 'x' + y;
                     if(!map[key]) {
                         x--;
-                        map[key] = {
-                            val: val,
-                            i: i
-                        };
+                        map[key] = { i: i };
                         dir = 2; //Switch to left
                     } else {
                         key = x + 'x' + (--y);
                         if(!map[key]) {
-                            map[key] = {
-                                val: val,
-                                i: i
-                            };
+                            map[key] = { i: i };
                         }
                     }
                     break;
@@ -101,18 +92,12 @@
                     key = x + 'x' + (y + 1); 
                     if(!map[key]) {
                         y++;
-                        map[key] = {
-                            val: val,
-                            i: i
-                        };
+                        map[key] = { i: i };
                         dir = 3; //Switch to down
                     } else {
                         key = (--x) + 'x' + y;
                         if(!map[key]) {
-                           map[key] = {
-                               val: val, 
-                               i: i
-                           };
+                           map[key] = { i: i };
                         }
                     }
                     break;
@@ -120,38 +105,49 @@
                     key = (x+1) + 'x' + y;
                     if(!map[key]) {
                         x++;
-                        map[key] = {
-                            val: val,
-                            i: i
-                        };
+                        map[key] = { i: i };
                         dir = 0; //Switch to right
                     } else {
                         key = x + 'x' + (++y);
                         if(!map[key]) {
-                            map[key] = {
-                                val: val,
-                                i: i
-                            };
+                            map[key] = { i: i };
                         }
                     }
                     break;
-            }
+            } // End switch
 
+            orderedValues[i] = key;
             m = n;
-        }	
+        } // End loop
 
+        generatingValues = false;	
     }
 
     function drawValues() {
-        var x, y;
+        var x, y, val, attr;
 
         context.clearRect(0, 0, width - 20, height - 20);
 
-        for(var val in map) {
+        renderProcess = orderedValues.length;
+
+        for(var i = 1; i < orderedValues.length; i++) {
+            val = orderedValues[i];
             x = val.substring(0, val.indexOf('x'));
             y = val.substring(val.indexOf('x')+1);
+            attr = map[val];
 
-            drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), map[val]);
+            if(!attr.factors) {
+                (function(x, y, val, attr) {                    
+                    totalDivisors(attr.i, function(factors) {                        
+                        attr.factors = factors;
+                        drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
+                        renderProcess--;
+                    });   
+                })(x, y, val, attr);                             
+            } else {            
+                drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
+                renderProcess--;
+            }            
         }
 
     }
@@ -159,13 +155,15 @@
     var position = {},
         n = 7000, 
         m = 1, 
-        startSize = 10, 
+        startSize = 5, 
         size = startSize, 
         scale = 1, 
         iterations = 0,
         label = false,
-        width = document.width,
-        height = document.height;
+        renderProcess = 0,
+        generatingValues = false,
+        width = document.body.clientWidth,
+        height = document.body.clientHeight;
 
 	var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');
@@ -175,20 +173,29 @@
     canvas.height = height - 20;
 
 	var val, key, x = 0, y = 0, dir = 0;
-    var map = {};
+    var map = {},
+        orderedValues = window.vals = [];
     
     genValues();
     drawValues(); 
 
-    window.onclick = function(e) {
-        //genValues();
-        //drawValues();    
-    }
+    var scrollTimeout;
 
-    window.onmousewheel = function(e) {
+    window.onmousewheel = function(e) {   
         size = size + (e.wheelDelta / 500);
-        genValues();
-        drawValues();
+
+        if(renderProcess > 1 || generatingValues) {            
+            console.log(renderProcess);
+            // drawValues();
+            return;
+        }   
+
+        if(scrollTimeout) clearTimeout(scrollTimeout);     
+        
+        scrollTimeout = setTimeout(function() {
+            genValues();
+            drawValues();              
+        },200);
     };
 
 })(this);
