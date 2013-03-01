@@ -181,14 +181,17 @@
 
     var scrollTimeout;
 
-    window.onmousewheel = function(e) {   
-        size = size + (e.wheelDelta / 500);
+    window.onmousewheel = function(e) {           
 
         if(renderProcess > 1 || generatingValues) {            
-            console.log(renderProcess);
+            console.log("halt render", renderProcess);            
             // drawValues();
             return;
         }   
+
+        size = size + (e.wheelDelta / 500);
+
+        console.log("rerender", renderProcess);
 
         if(scrollTimeout) clearTimeout(scrollTimeout);     
         
