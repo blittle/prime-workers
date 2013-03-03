@@ -11,18 +11,10 @@
 
         if( c < 3) {
             color = "#08306b";
-        //} else if( c < 4) {
-        //    color = "#08519C";
         } else if( c < 8) {
             color = "#2171B5"; 
-        //} else if( c < 16) {
-        //    color = "#4292C6";
         } else if( c < 32) {
             color = "#6BAED6";
-        //} else if( c < 64) {
-        //    color = "#9ECAE1";
-        //} else if( c < 128) {
-        //    color = "#C6DBEF";
         } else {
             color ="#DEEBF7";
         }
@@ -37,15 +29,7 @@
     }
 
     function totalDivisors(val, callback) {
-        setTimeout(function() {
-            var factors = 1;
-
-            for(var i = Math.ceil(val/2); i > 0; i--) {
-                if (!(val % i)) factors++;
-            }
-
-            callback(factors);
-        }, 0);        
+        workerController.execute({val: val, id: 0}, callback);       
     }
 
     function genValues() {
@@ -137,13 +121,13 @@
             attr = map[val];
 
             if(!attr.factors) {
-                (function(x, y, val, attr) {                    
-                    totalDivisors(attr.i, function(factors) {                        
-                        attr.factors = factors;
-                        drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
-                        renderProcess--;
-                    });   
-                })(x, y, val, attr);                             
+                workerController.execute({
+                    id: 0,
+                    val: attr.i,
+                    x: x,
+                    y: y,
+                    attr: attr
+                }, drawValue);                             
             } else {            
                 drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
                 renderProcess--;
@@ -152,10 +136,15 @@
 
     }
 
+    function drawValue(data) {
+        drawArc(context, (size*2)*data.x + (width/2), (size*2)*data.y + (height/2), data.attr);
+        renderProcess--;
+    }
+
     var position = {},
         n = 7000, 
         m = 1, 
-        startSize = 5, 
+        startSize = 2, 
         size = startSize, 
         scale = 1, 
         iterations = 0,
@@ -166,7 +155,7 @@
         height = document.body.clientHeight;
 
 	var canvas = document.getElementById('canvas');
-    var context = canvas.getContext('2d');
+    var context = canvas.getContext('2d');    
 
     context.font = 'italic 10px Calibri';
     canvas.width = width - 20;
