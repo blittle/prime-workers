@@ -24,12 +24,26 @@
 
         if(label) {
             context.fillStyle = 'white';
+            context.font = 'bold 15px Calibri';
             context.fillText(val.i, x - (r/2), y );
         }
     }
 
-    function totalDivisors(val, callback) {
-        workerController.execute({val: val, id: 0}, callback);       
+    function totalDivisors(obj, callback) {
+
+        setTimeout(function() {
+            var val = obj.val;
+
+            var factors = 1;
+
+            for(var i = Math.ceil(val/2); i > 0; i--) {
+                if (!(val % i)) factors++;
+            }
+
+            obj.attr.factors = factors;
+            callback(obj);
+            
+        }, 0);        
     }
 
     function genValues() {
@@ -121,13 +135,20 @@
             attr = map[val];
 
             if(!attr.factors) {
-                workerController.execute({
-                    id: 0,
+                // workerController.execute({
+                //     id: 0,
+                //     val: attr.i,
+                //     x: x,
+                //     y: y,
+                //     attr: attr
+                // }, drawValue);  
+
+                totalDivisors({
                     val: attr.i,
                     x: x,
                     y: y,
                     attr: attr
-                }, drawValue);                             
+                }, drawValue);                           
             } else {            
                 drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
                 renderProcess--;
@@ -144,7 +165,7 @@
     var position = {},
         n = 7000, 
         m = 1, 
-        startSize = 2, 
+        startSize = 5, 
         size = startSize, 
         scale = 1, 
         iterations = 0,
@@ -156,8 +177,7 @@
 
 	var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');    
-
-    context.font = 'italic 10px Calibri';
+    
     canvas.width = width - 20;
     canvas.height = height - 20;
 
