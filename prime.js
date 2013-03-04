@@ -52,7 +52,7 @@
 
         n = Math.ceil(Math.pow(width / (size * 2), 2));
 
-        console.log(n);
+        console.log('total elements', n);
 
         iterations++;
 
@@ -135,20 +135,21 @@
             attr = map[val];
 
             if(!attr.factors) {
-                // workerController.execute({
-                //     id: 0,
-                //     val: attr.i,
-                //     x: x,
-                //     y: y,
-                //     attr: attr
-                // }, drawValue);  
-
-                totalDivisors({
+                workerController.execute({
+                    id: 0,
                     val: attr.i,
                     x: x,
                     y: y,
                     attr: attr
-                }, drawValue);                           
+                }, drawValue);  
+
+                // totalDivisors({
+                //     val: attr.i,
+                //     x: x,
+                //     y: y,
+                //     attr: attr
+                // }, drawValue);                           
+                
             } else {            
                 drawArc(context, (size*2)*x + (width/2), (size*2)*y + (height/2), attr);
                 renderProcess--;
@@ -160,12 +161,13 @@
     function drawValue(data) {
         drawArc(context, (size*2)*data.x + (width/2), (size*2)*data.y + (height/2), data.attr);
         renderProcess--;
+        if(renderProcess < 2) console.log('total time', ((new Date()).getTime() - startTime) );
     }
 
     var position = {},
         n = 7000, 
         m = 1, 
-        startSize = 5, 
+        startSize = 3, 
         size = startSize, 
         scale = 1, 
         iterations = 0,
@@ -177,6 +179,9 @@
 
 	var canvas = document.getElementById('canvas');
     var context = canvas.getContext('2d');    
+    var workerController = new WorkerController({
+        threads: 4
+    });
     
     canvas.width = width - 20;
     canvas.height = height - 20;
@@ -184,7 +189,9 @@
 	var val, key, x = 0, y = 0, dir = 0;
     var map = {},
         orderedValues = window.vals = [];
-    
+
+    var startTime = (new Date()).getTime();
+
     genValues();
     drawValues(); 
 
@@ -193,14 +200,12 @@
     window.onmousewheel = function(e) {           
 
         if(renderProcess > 1 || generatingValues) {            
-            console.log("halt render", renderProcess);            
+            console.log("halt re1der", renderProcess);            
             // drawValues();
             return;
         }   
 
         size = size + (e.wheelDelta / 500);
-
-        console.log("rerender", renderProcess);
 
         if(scrollTimeout) clearTimeout(scrollTimeout);     
         

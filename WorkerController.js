@@ -53,5 +53,3 @@
 	global.WorkerController = WorkerController;
 
 })(this);
-
-var workerController = new WorkerController();
