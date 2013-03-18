@@ -19,6 +19,8 @@
             color ="#DEEBF7";
         }
 
+        if(noShade) color = "#08306b";
+
         context.fillStyle = color;
         context.fill();
 
@@ -167,11 +169,12 @@
     var position = {},
         n = 7000, 
         m = 1, 
-        startSize = 3, 
+        startSize = 10, 
         size = startSize, 
         scale = 1, 
         iterations = 0,
         label = false,
+        noShade = false,
         renderProcess = 0,
         generatingValues = false,
         width = document.body.clientWidth,
